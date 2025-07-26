@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.118:3000/api/group';
+const API_URL = 'http://192.168.1.104:3000/api/group';
 
 export const createGroup = ({ groupName, userIds, createdBy, userRole }) => {
 console.log(userIds);

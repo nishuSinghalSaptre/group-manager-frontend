@@ -47,9 +47,6 @@ export default ({ config }) => {
         },
         package: "com.sars12312.myexpoapp"
       },
-       "ios": {
-          "bundleIdentifier": "com.sars12312.myexpoapp"
-        },
       extra: {
         eas: {
           projectId: "3b65a0e0-1ade-4e17-86df-13ef60ea6ea2"

@@ -1,130 +1,70 @@
-import { useState, useEffect, useRef } from 'react';
-import { Text, View, Button, Platform } from 'react-native';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
+    import React from 'react';
+    import { NavigationContainer } from '@react-navigation/native';
+    import { createNativeStackNavigator } from '@react-navigation/native-stack';
+    import { createDrawerNavigator } from '@react-navigation/drawer';
+    import { UserProvider, useUser } from './context/UserContext';
+
+    import HomeScreen from './screens/HomeScreen';
+    import SignInScreen from './screens/SignInScreen';
+    import SignUpScreen from './screens/SignUpScreen';
+    import CreateGroupScreen from './screens/CreateGroupScreen';
+    import GroupChatScreen from './screens/GroupChatScreen'
+    import CustomDrawer from './components/CustomDrawer';
+    import VerifyEmailScreen from './screens/VerifyEmailScreen';
+    import JitsiLauncher from './screens/JitsiLauncher';
 
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+    import './global.css';
 
+    const Stack = createNativeStackNavigator();
+    const Drawer = createDrawerNavigator();
 
+    const DrawerNavigator = () => (
+      <Drawer.Navigator
+        drawerContent={(props) => <CustomDrawer {...props} />}
+        screenOptions={{ headerShown: true }}
+      >
+        <Drawer.Screen name="Home" component={HomeScreen} options={{ title: 'Dashboard' }} />
+        <Drawer.Screen name="CreateGroup" component={CreateGroupScreen} options={{ title: 'Create Group' }} />
+        <Drawer.Screen
+          name="GroupChat"
+          component={GroupChatScreen}
+          options={({ route }) => ({
+            title: route?.params?.groupName ?? 'Group Chat',
+          })}
+        />
+      </Drawer.Navigator>
+    );
 
-async function sendPushNotification(expoPushToken: string) {
-  const message = {
-    to: expoPushToken,
-    sound: 'default',
-    title: 'Original Title',
-    body: 'And here is the body!',
-    data: { someData: 'goes here' },
-  };
+const AppNavigator = () => {
+  const { user, loading } = useUser();
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
-}
-
-
-function handleRegistrationError(errorMessage: string) {
-    console.log(errorMessage);
-  alert(errorMessage);
-  throw new Error(errorMessage);
-}
-
-async function registerForPushNotificationsAsync() {
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-    });
-  }
-
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== 'granted') {
-      handleRegistrationError('Permission not granted to get push token for push notification!');
-      return;
-    }
-    const projectId = "3b65a0e0-1ade-4e17-86df-13ef60ea6ea2";
-    if (!projectId) {
-      handleRegistrationError('Project ID not found');
-    }
-    try {
-      const pushTokenString = (
-        await Notifications.getExpoPushTokenAsync({
-          projectId,
-        })
-      ).data;
-      console.log(pushTokenString);
-      const token1 =  (await Notifications.getDevicePushTokenAsync()).data;
-        console.log("token1 -> " + token1);
-      return pushTokenString;
-    } catch (e: unknown) {
-      handleRegistrationError(`${e}`);
-    }
-  } else {
-    handleRegistrationError('Must use physical device for push notifications');
-  }
-}
-
-export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState<Notifications.Notification | undefined>(
-    undefined
-  );
-
-  useEffect(() => {
-    registerForPushNotificationsAsync()
-      .then(token => setExpoPushToken(token ?? ''))
-      .catch((error: any) => setExpoPushToken(`${error}`));
-
-    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
-
-    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-
-    return () => {
-      notificationListener.remove();
-      responseListener.remove();
-    };
-  }, []);
+  if (loading) return null;
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-around' }}>
-      <Text>Your Expo push token: {expoPushToken}</Text>
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Title: {notification && notification.request.content.title} </Text>
-        <Text>Body: {notification && notification.request.content.body}</Text>
-        <Text>Data: {notification && JSON.stringify(notification.request.content.data)}</Text>
-      </View>
-      <Button
-        title="Press to Send Notification"
-        onPress={async () => {
-          await sendPushNotification(expoPushToken);
-        }}
-      />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
+        ) : (
+          <>
+            <Stack.Screen name="SignIn" component={SignInScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+            <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+          </>
+        )}
+        {/* Shared screen accessible regardless of auth */}
+        <Stack.Screen name="JitsiLauncher" component={JitsiLauncher} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
+
+
+    export default function App() {
+      return (
+        <UserProvider>
+          <AppNavigator />
+        </UserProvider>
+      );
+    }

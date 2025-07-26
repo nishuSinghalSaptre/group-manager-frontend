@@ -1,5 +1,3 @@
-// File: src/screens/GroupChatScreen.js
-
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -125,36 +123,6 @@ export default function GroupChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
       >
-        {/* Call Buttons */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around', margin: 8 }}>
-          <TouchableOpacity
-            style={{ backgroundColor: '#1D4ED8', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20 }}
-            onPress={() =>
-              navigation.navigate('JitsiLauncher', {
-                roomName: `group_${groupId}`,
-                userName: user.email,
-                audioOnly: false,
-              })
-            }
-          >
-            <Text style={{ color: '#fff', fontSize: 13 }}>Video Call</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ backgroundColor: '#10B981', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20 }}
-            onPress={() =>
-              navigation.navigate('JitsiLauncher', {
-                roomName: `group_${groupId}`,
-                userName: user.email,
-                audioOnly: true,
-              })
-            }
-          >
-            <Text style={{ color: '#fff', fontSize: 13 }}>Audio Call</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Chat */}
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color="#1D4ED8" />
@@ -166,12 +134,16 @@ export default function GroupChatScreen() {
             inverted
             contentContainerStyle={{ padding: 12 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            keyExtractor={(item, index) => item.message_id?.toString() || item.date || index.toString()}
+            keyExtractor={(item, index) =>
+              item.message_id?.toString() || item.date || index.toString()
+            }
             renderItem={({ item }) => {
               if (item.type === 'date') {
                 return (
                   <View style={{ alignItems: 'center', marginVertical: 8 }}>
-                    <Text style={{ fontSize: 11, color: '#6B7280' }}>{formatDateLabel(item.date)}</Text>
+                    <Text style={{ fontSize: 11, color: '#6B7280' }}>
+                      {formatDateLabel(item.date)}
+                    </Text>
                   </View>
                 );
               }
@@ -189,16 +161,40 @@ export default function GroupChatScreen() {
                     maxWidth: '75%',
                   }}
                 >
-                  <Text style={{ fontWeight: 'bold', fontSize: 11, marginBottom: 2, color: '#111827' }}>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 11,
+                      marginBottom: 2,
+                      color: '#111827',
+                    }}
+                  >
                     {item.sender_email}
                   </Text>
-                  <Text style={{ fontSize: 12, color: '#111827', marginBottom: 4 }}>{item.message_text}</Text>
-                  <Text style={{ fontSize: 10, color: '#6B7280', alignSelf: 'flex-end' }}>{item.istTime}</Text>
+                  <Text style={{ fontSize: 12, color: '#111827', marginBottom: 4 }}>
+                    {item.message_text}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: '#6B7280',
+                      alignSelf: 'flex-end',
+                    }}
+                  >
+                    {item.istTime}
+                  </Text>
                 </View>
               );
             }}
             ListEmptyComponent={
-              <Text style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginTop: 20 }}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: '#9CA3AF',
+                  fontSize: 12,
+                  marginTop: 20,
+                }}
+              >
                 No messages yet.
               </Text>
             }
